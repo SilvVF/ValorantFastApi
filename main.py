@@ -1,6 +1,5 @@
 import json
 import undetected_chromedriver as uc
-from bs4 import BeautifulSoup
 from player_keys import PlayerDataKeys
 from typing import Union
 from fastapi import FastAPI
@@ -35,11 +34,10 @@ def read_item(name: str, tagline: str, q: Union[str, None] = None):
         return recent_fetch_cache[name + tagline]
     driver.get('https://tracker.gg/valorant/profile/riot/' + name + '%23' + tagline + '/overview')
     html = driver.page_source
-    soup = BeautifulSoup(html, 'html.parser')
-    text = soup.text
     target = "window.__INITIAL_STATE__ ="
-    break_at = text.find(target) + len(target)
-    json_site_data = text[break_at:]
+    start = html.find(target) + len(target)
+    current = html[start:]
+    json_site_data = current[:current.find("</script>")]
     data = PlayerDataKeys(json.loads(json_site_data)['stats']['standardProfiles'][0]['segments'][0]["stats"])
     response = {
         "kd": data.kDRatio,
